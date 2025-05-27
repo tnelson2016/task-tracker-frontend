@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import TaskList from './TaskList';
 import TaskForm from './TaskForm';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -38,7 +41,11 @@ function App() {
     } catch (error) {
       console.error("Add error:", error);
     }
+    toast.success("Task added!");
+
   };
+
+
 
   // Toggle task completion
   const handleToggleTask = async (taskId) => {
@@ -78,6 +85,23 @@ function App() {
     }
   };
 
+  
+  //Add “Clear Completed” Button
+  const handleClearCompleted = async () => {
+    try {
+      const completedTasks = tasks.filter((task) => task.completed);
+      for (const task of completedTasks) {
+        await fetch(`${process.env.REACT_APP_API_URL}/api/tasks/${task.id}`, {
+          method: "DELETE",
+        });
+      }
+      setTasks((prev) => prev.filter((task) => !task.completed));
+    } catch (error) {
+      console.error("Failed to clear completed tasks", error);
+    }
+  };
+  
+
   return (
     <div style={{
       maxWidth: "600px",
@@ -88,8 +112,28 @@ function App() {
       backgroundColor: "#f9f9f9"
     }}>
       <h1 style={{ textAlign: "center", color: "#333" }}>📝 Task Tracker</h1>
+      <p style={{ textAlign: "center", fontSize: "1rem", color: "#666" }}>
+  {tasks.filter((task) => !task.completed).length} tasks remaining
+</p>
+
       <TaskForm onAdd={handleAddTask} />
       <TaskList tasks={tasks} onToggle={handleToggleTask} onDelete={handleDeleteTask} />
+      <button
+  onClick={handleClearCompleted}
+  style={{
+    marginTop: "1rem",
+    padding: "0.5rem 1rem",
+    backgroundColor: "#555",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+  }}
+>
+  Clear Completed Tasks
+</button>
+<ToastContainer position="top-center" autoClose={2000} />
+
     </div>
   );
 }
